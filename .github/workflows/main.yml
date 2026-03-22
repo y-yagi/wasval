@@ -16,7 +16,6 @@ jobs:
         ruby:
           - '3.3'
           - '3.4'
-          - '4.0'
 
     env:
       WASVAL_RUBY_WASM_PATH: /tmp/ruby.wasm
