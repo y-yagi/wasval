@@ -1,0 +1,35 @@
+name: Ruby
+
+on:
+  push:
+    branches:
+      - main
+
+  pull_request:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    name: Ruby ${{ matrix.ruby }}
+    strategy:
+      matrix:
+        ruby:
+          - '3.3'
+          - '3.4'
+
+    env:
+      WASVAL_RUBY_WASM_PATH: /tmp/ruby.wasm
+
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          persist-credentials: false
+      - name: Set up Ruby
+        uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: ${{ matrix.ruby }}
+          bundler-cache: true
+      - name: Install ruby.wasm
+        run: bundle exec ruby -e "require 'wasval'; Wasval::Install::RubyWasm.new.install"
+      - name: Run the default task
+        run: bundle exec rake
