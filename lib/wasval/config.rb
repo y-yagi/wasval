@@ -3,7 +3,7 @@
 module Wasval
   class Config
     DEFAULT_TIMEOUT = 5
-    DEFAULT_MEMORY_LIMIT = 64
+    DEFAULT_MEMORY_LIMIT = 128
 
     attr_accessor :timeout, :memory_limit
 

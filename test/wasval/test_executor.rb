@@ -58,7 +58,7 @@ class TestWasvalExecutor < Minitest::Test
   end
 
   def test_config_default_memory_limit
-    assert_equal 64, Wasval::Config::DEFAULT_MEMORY_LIMIT
+    assert_equal 128, Wasval::Config::DEFAULT_MEMORY_LIMIT
   end
 
   def test_config_attribute_setters
