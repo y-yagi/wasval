@@ -49,7 +49,7 @@ result.success?      # => true
 ```ruby
 Wasval.configure do |config|
   config.timeout      = 10   # seconds (default: 5)
-  config.memory_limit = 128  # MB (default: 64)
+  config.memory_limit = 256  # MB (default: 128)
 end
 ```
 
