@@ -72,6 +72,13 @@ result = Wasval.execute(code, timeout: 3, memory_limit: 32)
 
 Helper methods: `success?`, `timeout?`, `error_type`.
 
+## Performance and Memory Considerations
+
+Since Wasval loads a `ruby.wasm` binary at runtime, please be aware of the following:
+
+- **Memory usage**: Loading ruby.wasm requires a significant amount of memory. Ensure your environment has sufficient memory available before using this gem.
+- **First execution latency**: The first call to `Wasval.execute` incurs additional overhead due to loading and initializing the WebAssembly runtime. Subsequent calls will be faster.
+
 ## Development
 
 After checking out the repo, run `bin/setup` to install dependencies. Then, install the ruby.wasm binary:
