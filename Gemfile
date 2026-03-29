@@ -9,5 +9,6 @@ gem "debug"
 gem "irb"
 gem "irb-reload"
 gem "rake", "~> 13.0"
+gem "get_process_mem"
 
 gem "minitest"
