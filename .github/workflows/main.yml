@@ -21,6 +21,7 @@ jobs:
 
     env:
       WASVAL_RUBY_WASM_PATH: /tmp/ruby.wasm
+      WASVAL_RUBY_CWASM_PATH: /tmp/ruby.cwasm
 
     steps:
       - uses: actions/checkout@v6
@@ -32,6 +33,6 @@ jobs:
           ruby-version: ${{ matrix.ruby }}
           bundler-cache: true
       - name: Install ruby.wasm
-        run: bundle exec ruby -e "require 'wasval'; Wasval::Install::RubyWasm.new.download"
+        run: bundle exec ruby -e "require 'wasval'; Wasval::Install::RubyWasm.new.install"
       - name: Run the default task
         run: bundle exec rake

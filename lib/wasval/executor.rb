@@ -7,12 +7,18 @@ module Wasval
     STDOUT_BUFFER_SIZE = 10 * 1024 * 1024  # 10 MB
     STDERR_BUFFER_SIZE = 1 * 1024 * 1024   # 1 MB
     WASM_PATH = ENV["WASVAL_RUBY_WASM_PATH"]
+    CWASM_PATH = ENV["WASVAL_RUBY_CWASM_PATH"]
 
     def initialize
-      raise ArgumentError.new "Please specify 'WASVAL_RUBY_WASM_PATH' env" if WASM_PATH.nil?
-
       @engine = Wasmtime::Engine.new(epoch_interruption: true)
-      @mod = Wasmtime::Module.from_file(@engine, WASM_PATH)
+
+      if WASM_PATH
+        @mod = Wasmtime::Module.from_file(@engine, WASM_PATH)
+      elsif CWASM_PATH
+        @mod = Wasmtime::Module.deserialize_file(@engine, CWASM_PATH)
+      else
+        raise ArgumentError.new "Please specify 'WASVAL_RUBY_WASM_PATH' or 'WASVAL_RUBY_CWASM_PATH' env"
+      end
     end
 
     def execute(code:, timeout:, memory_limit:)

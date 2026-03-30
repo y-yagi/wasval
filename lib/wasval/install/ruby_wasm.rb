@@ -37,6 +37,11 @@ module Wasval
         dest
       end
 
+      def install
+        download
+        serialize
+      end
+
       def serialize
         engine = Wasmtime::Engine.new(epoch_interruption: true)
         mod = Wasmtime::Module.from_file(engine, dest)
