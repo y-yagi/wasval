@@ -6,6 +6,7 @@ require "zlib"
 require "rubygems/package"
 require "fileutils"
 require "tmpdir"
+require "wasmtime"
 
 module Wasval
   module Install
@@ -15,13 +16,15 @@ module Wasval
       BINARY_PATH_IN_TAR = "usr/local/bin/ruby"
       DEFAULT_INSTALL_DIR = File.expand_path("~/.wasval")
       DEFAULT_BINARY_NAME = "ruby.wasm"
+      DEFAULT_SERIALIZED_BINARY_NAME = "ruby.cwasm"
 
-      attr_reader :dest, :ruby_version, :profile
+      attr_reader :dest, :serialized_dest, :ruby_version, :profile
 
-      def initialize(dest: nil, ruby_version: nil, profile: :full)
+      def initialize(dest: nil, serialized_dest: nil, ruby_version: nil, profile: :full)
         @ruby_version = ruby_version || default_ruby_version
         @profile = profile.to_s
         @dest = dest || ENV["WASVAL_RUBY_WASM_PATH"] || File.join(DEFAULT_INSTALL_DIR, DEFAULT_BINARY_NAME)
+        @serialized_dest = serialized_dest || ENV["WASVAL_RUBY_CWASM_PATH"] || File.join(File.dirname(@dest), DEFAULT_SERIALIZED_BINARY_NAME)
       end
 
       def download
@@ -32,6 +35,14 @@ module Wasval
           extract_binary(tarball_path)
         end
         dest
+      end
+
+      def serialize
+        engine = Wasmtime::Engine.new(epoch_interruption: true)
+        mod = Wasmtime::Module.from_file(engine, dest)
+        FileUtils.mkdir_p(File.dirname(serialized_dest))
+        File.binwrite(serialized_dest, mod.serialize)
+        serialized_dest
       end
 
       def installed?
