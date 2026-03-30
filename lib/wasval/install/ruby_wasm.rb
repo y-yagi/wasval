@@ -24,11 +24,11 @@ module Wasval
         @dest = dest || ENV["WASVAL_RUBY_WASM_PATH"] || File.join(DEFAULT_INSTALL_DIR, DEFAULT_BINARY_NAME)
       end
 
-      def install
+      def download
         FileUtils.mkdir_p(File.dirname(dest))
         Dir.mktmpdir do |tmpdir|
           tarball_path = File.join(tmpdir, tarball_name)
-          download(download_url, tarball_path)
+          download_file(download_url, tarball_path)
           extract_binary(tarball_path)
         end
         dest
@@ -52,7 +52,7 @@ module Wasval
         RUBY_VERSION.split(".").first(2).join(".")
       end
 
-      def download(url, dest_path, redirect_limit: 10)
+      def download_file(url, dest_path, redirect_limit: 10)
         raise "Too many redirects for #{url}" if redirect_limit == 0
 
         uri = URI.parse(url)
@@ -64,7 +64,7 @@ module Wasval
                 response.read_body { |chunk| f.write(chunk) }
               end
             when Net::HTTPRedirection
-              download(response["location"], dest_path, redirect_limit: redirect_limit - 1)
+              download_file(response["location"], dest_path, redirect_limit: redirect_limit - 1)
             else
               raise "Failed to download #{url}: #{response.code} #{response.message}"
             end

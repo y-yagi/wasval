@@ -21,7 +21,7 @@ Wasval requires a `ruby.wasm` binary. Install it with the built-in installer:
 ```ruby
 require "wasval"
 
-Wasval::Install::RubyWasm.new.install
+Wasval::Install::RubyWasm.new.download
 ```
 
 The binary is downloaded from the [ruby.wasm releases](https://github.com/ruby/ruby.wasm/releases) and saved to `~/.wasval/ruby.wasm` by default.
@@ -29,7 +29,7 @@ The binary is downloaded from the [ruby.wasm releases](https://github.com/ruby/r
 You can customize the destination via the `WASVAL_RUBY_WASM_PATH` environment variable or the `dest:` option:
 
 ```ruby
-Wasval::Install::RubyWasm.new(dest: "/path/to/ruby.wasm").install
+Wasval::Install::RubyWasm.new(dest: "/path/to/ruby.wasm").download
 ```
 
 ## Usage
@@ -84,7 +84,7 @@ Since Wasval loads a `ruby.wasm` binary at runtime, please be aware of the follo
 After checking out the repo, run `bin/setup` to install dependencies. Then, install the ruby.wasm binary:
 
 ```bash
-bundle exec ruby -e "require 'wasval'; Wasval::Install::RubyWasm.new.install"
+bundle exec ruby -e "require 'wasval'; Wasval::Install::RubyWasm.new.download"
 ```
 
 Set `WASVAL_RUBY_WASM_PATH` and run the tests:
