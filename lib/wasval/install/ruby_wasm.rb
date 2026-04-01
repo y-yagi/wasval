@@ -21,7 +21,7 @@ module Wasval
       attr_reader :dest, :serialized_dest, :ruby_version, :profile
 
       def initialize(dest: nil, serialized_dest: nil, ruby_version: nil, profile: :full)
-        @ruby_version = ruby_version || default_ruby_version
+        @ruby_version = ruby_version || ENV["WASVAL_RUBY_VERSION"] || default_ruby_version
         @profile = profile.to_s
         @dest = dest || ENV["WASVAL_RUBY_WASM_PATH"] || File.join(DEFAULT_INSTALL_DIR, DEFAULT_BINARY_NAME)
         @serialized_dest = serialized_dest || ENV["WASVAL_RUBY_CWASM_PATH"] || File.join(File.dirname(@dest), DEFAULT_SERIALIZED_BINARY_NAME)
