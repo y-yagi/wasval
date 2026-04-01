@@ -1,0 +1,86 @@
+#!/usr/bin/env ruby
+# frozen_string_literal: true
+
+require "bundler/setup"
+require "wasmtime"
+require "get_process_mem"
+
+WASM_DIR = File.expand_path("~/.wasval")
+WASM_FILES = {
+  "ruby33 (wasm)"  => { path: File.join(WASM_DIR, "ruby33.wasm"),  serialized: false },
+  "ruby34 (wasm)"  => { path: File.join(WASM_DIR, "ruby34.wasm"),  serialized: false },
+  "ruby40 (wasm)"  => { path: File.join(WASM_DIR, "ruby40.wasm"),  serialized: false },
+  "ruby33 (cwasm)" => { path: File.join(WASM_DIR, "ruby33.cwasm"), serialized: true },
+  "ruby34 (cwasm)" => { path: File.join(WASM_DIR, "ruby34.cwasm"), serialized: true },
+  "ruby40 (cwasm)" => { path: File.join(WASM_DIR, "ruby40.cwasm"), serialized: true },
+}
+
+CODE = "puts 1 + 1"
+TIMEOUT = 5
+MEMORY_LIMIT = 128
+
+WASM_FILES.each do |version, config|
+  wasm_path = config[:path]
+  unless File.exist?(wasm_path)
+    puts "#{version}: SKIP (#{wasm_path} not found)"
+    next
+  end
+
+  reader, writer = IO.pipe
+
+  pid = fork do
+    reader.close
+
+    engine = Wasmtime::Engine.new(epoch_interruption: true)
+    mod = if config[:serialized]
+      Wasmtime::Module.deserialize_file(engine, wasm_path)
+    else
+      Wasmtime::Module.from_file(engine, wasm_path)
+    end
+
+    stdout_buf = +""
+    stderr_buf = +""
+
+    wasi_config = Wasmtime::WasiConfig.new
+      .set_argv(["ruby", "-"])
+      .set_stdin_string(CODE)
+      .set_stdout_buffer(stdout_buf, 10 * 1024 * 1024)
+      .set_stderr_buffer(stderr_buf, 1 * 1024 * 1024)
+
+    store = Wasmtime::Store.new(engine,
+      wasi_p1_config: wasi_config,
+      limits: { memory_size: MEMORY_LIMIT * 1024 * 1024 }
+    )
+    store.set_epoch_deadline(TIMEOUT)
+
+    linker = Wasmtime::Linker.new(engine)
+    Wasmtime::WASI::P1.add_to_linker_sync(linker)
+    engine.start_epoch_interval(1000)
+
+    error_message = nil
+    begin
+      linker.instantiate(store, mod).invoke("_start")
+    rescue Wasmtime::WasiExit
+    rescue Wasmtime::Trap, Wasmtime::Error => e
+      error_message = store.linear_memory_limit_hit? ? "memory limit exceeded" : "#{e.class}: #{e.message}"
+    rescue => e
+      error_message = "#{e.class}: #{e.message}"
+    end
+
+    process_mem_mb = GetProcessMem.new.mb
+    max_linear_mb = store.max_linear_memory_consumed.to_f / (1024 * 1024)
+
+    writer.puts "#{max_linear_mb.round(2)},#{process_mem_mb.round(2)},#{error_message}"
+    writer.close
+  end
+
+  writer.close
+  result = reader.read
+  reader.close
+  Process.wait(pid)
+
+  max_linear_mb, process_mem_mb, error_message = result.chomp.split(",", 3)
+  output = "#{version}: max_linear_memory_consumed=#{max_linear_mb} MB, process_mem=#{process_mem_mb} MB"
+  output += ", error=#{error_message}" if error_message && !error_message.empty?
+  puts output
+end
