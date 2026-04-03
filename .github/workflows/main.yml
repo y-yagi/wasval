@@ -20,7 +20,6 @@ jobs:
           - '4.0'
 
     env:
-      WASVAL_RUBY_WASM_PATH: /tmp/ruby.wasm
       WASVAL_RUBY_CWASM_PATH: /tmp/ruby.cwasm
       WASVAL_RUBY_VERSION: 3.4
 
