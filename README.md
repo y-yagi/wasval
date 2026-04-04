@@ -21,10 +21,18 @@ Wasval requires a `ruby.wasm` binary. Install it with the built-in installer:
 ```ruby
 require "wasval"
 
+Wasval::Install::RubyWasm.new.install
+```
+
+`install` downloads the `ruby.wasm` binary and also generates a pre-compiled `ruby.cwasm` (serialized WebAssembly module) alongside it. Both files are saved to `~/.wasval/` by default (`ruby.wasm` and `ruby.cwasm`). The `.cwasm` file is a pre-compiled module that significantly reduces startup time on subsequent executions, though it is larger in file size than the `.wasm` binary.
+
+If you only need the `.wasm` binary without pre-compilation, use `download` instead:
+
+```ruby
 Wasval::Install::RubyWasm.new.download
 ```
 
-The binary is downloaded from the [ruby.wasm releases](https://github.com/ruby/ruby.wasm/releases) and saved to `~/.wasval/ruby.wasm` by default.
+The binary is downloaded from the [ruby.wasm releases](https://github.com/ruby/ruby.wasm/releases).
 
 You can customize the destination via the `WASVAL_RUBY_WASM_PATH` environment variable or the `dest:` option:
 
