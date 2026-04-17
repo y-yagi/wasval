@@ -17,14 +17,20 @@ module Wasval
       DEFAULT_INSTALL_DIR = File.expand_path("~/.wasval")
       DEFAULT_BINARY_NAME = "ruby.wasm"
       DEFAULT_SERIALIZED_BINARY_NAME = "ruby.cwasm"
+      DEFAULT_PACKED_BINARY_NAME = "ruby-packed.wasm"
+      DEFAULT_USR_DIR_NAME = "usr"
 
-      attr_reader :dest, :serialized_dest, :ruby_version, :profile
+      attr_reader :dest, :serialized_dest, :ruby_version, :profile, :pack_dirs, :pack_output, :usr_dir, :include_usr
 
-      def initialize(dest: nil, serialized_dest: nil, ruby_version: nil, profile: :full)
+      def initialize(dest: nil, serialized_dest: nil, ruby_version: nil, profile: :full, pack_dirs: nil, pack_output: nil, usr_dir: nil, include_usr: false)
         @ruby_version = ruby_version || ENV["WASVAL_RUBY_VERSION"] || default_ruby_version
         @profile = profile.to_s
         @dest = dest || ENV["WASVAL_RUBY_WASM_PATH"] || File.join(DEFAULT_INSTALL_DIR, DEFAULT_BINARY_NAME)
         @serialized_dest = serialized_dest || ENV["WASVAL_RUBY_CWASM_PATH"] || File.join(File.dirname(@dest), DEFAULT_SERIALIZED_BINARY_NAME)
+        @pack_dirs = pack_dirs
+        @pack_output = pack_output || File.join(File.dirname(@dest), DEFAULT_PACKED_BINARY_NAME)
+        @usr_dir = usr_dir
+        @include_usr = include_usr
       end
 
       def download
@@ -38,7 +44,21 @@ module Wasval
       end
 
       def install
-        download
+        FileUtils.mkdir_p(File.dirname(dest))
+        Dir.mktmpdir do |tmpdir|
+          tarball_path = File.join(tmpdir, tarball_name)
+          download_file(download_url, tarball_path)
+          extract_binary(tarball_path)
+          if pack_dirs || include_usr
+            dirs = pack_dirs ? pack_dirs.dup : []
+            if include_usr
+              actual_usr_dir = usr_dir || File.join(tmpdir, DEFAULT_USR_DIR_NAME)
+              extract_usr_dir(tarball_path, actual_usr_dir)
+              dirs << actual_usr_dir
+            end
+            pack(*dirs, output: pack_output) if dirs.any?
+          end
+        end
         serialize
       end
 
@@ -48,6 +68,18 @@ module Wasval
         FileUtils.mkdir_p(File.dirname(serialized_dest))
         File.binwrite(serialized_dest, mod.serialize)
         serialized_dest
+      end
+
+      def pack(*dirs, output:)
+        args = [dest]
+        dirs.each do |dir|
+          dir_arg = dir.include?("::") ? dir : "#{dir}::/#{File.basename(dir)}"
+          args.push("--dir", dir_arg)
+        end
+        args.push("-o", output)
+
+        system("rbwasm", "pack", *args, exception: true)
+        output
       end
 
       def installed?
@@ -86,6 +118,16 @@ module Wasval
             end
           end
         end
+      end
+
+      def extract_usr_dir(tarball_path, dest_usr_dir)
+        Dir.mktmpdir do |extract_dir|
+          system("tar", "-xzf", tarball_path, "-C", extract_dir, exception: true)
+          src_usr = Dir.glob("#{extract_dir}/**/usr").min_by(&:length)
+          raise "usr directory not found in tarball" unless src_usr && File.directory?(src_usr)
+          FileUtils.cp_r(src_usr, File.dirname(dest_usr_dir))
+        end
+        dest_usr_dir
       end
 
       def extract_binary(tarball_path)
