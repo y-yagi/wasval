@@ -20,16 +20,16 @@ module Wasval
       DEFAULT_PACKED_BINARY_NAME = "ruby-packed.wasm"
       DEFAULT_USR_DIR_NAME = "usr"
 
-      attr_reader :dest, :serialized_dest, :ruby_version, :profile, :pack_dirs, :pack_output, :usr_dir, :include_usr
+      attr_reader :dest, :serialized_dest, :ruby_version, :profile, :pack_dirs, :pack_output, :include_gems, :include_usr
 
-      def initialize(dest: nil, serialized_dest: nil, ruby_version: nil, profile: :full, pack_dirs: nil, pack_output: nil, usr_dir: nil, include_usr: false)
+      def initialize(dest: nil, serialized_dest: nil, ruby_version: nil, profile: :full, pack_dirs: nil, pack_output: nil, include_gems: nil, include_usr: false)
         @ruby_version = ruby_version || ENV["WASVAL_RUBY_VERSION"] || default_ruby_version
         @profile = profile.to_s
         @dest = dest || ENV["WASVAL_RUBY_WASM_PATH"] || File.join(DEFAULT_INSTALL_DIR, DEFAULT_BINARY_NAME)
         @serialized_dest = serialized_dest || ENV["WASVAL_RUBY_CWASM_PATH"] || File.join(File.dirname(@dest), DEFAULT_SERIALIZED_BINARY_NAME)
         @pack_dirs = pack_dirs
         @pack_output = pack_output || File.join(File.dirname(@dest), DEFAULT_PACKED_BINARY_NAME)
-        @usr_dir = usr_dir
+        @include_gems = include_gems
         @include_usr = include_usr
       end
 
@@ -52,7 +52,7 @@ module Wasval
           if pack_dirs || include_usr
             dirs = pack_dirs ? pack_dirs.dup : []
             if include_usr
-              actual_usr_dir = usr_dir || File.join(tmpdir, DEFAULT_USR_DIR_NAME)
+              actual_usr_dir = include_gems || File.join(tmpdir, DEFAULT_USR_DIR_NAME)
               extract_usr_dir(tarball_path, actual_usr_dir)
               dirs << actual_usr_dir
             end
