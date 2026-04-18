@@ -10,13 +10,17 @@ WASM_FILES = {
   "ruby33 (wasm)"  => { path: File.join(WASM_DIR, "ruby33.wasm"),  serialized: false },
   "ruby34 (wasm)"  => { path: File.join(WASM_DIR, "ruby34.wasm"),  serialized: false },
   "ruby34 (wasm - minimal)"  => { path: File.join(WASM_DIR, "ruby34_minimal.wasm"),  serialized: false },
+  "ruby34 (wasm - include_gems)"  => { path: File.join(WASM_DIR, "ruby34_include_gems.wasm"),  serialized: false },
   "ruby40 (wasm)"  => { path: File.join(WASM_DIR, "ruby40.wasm"),  serialized: false },
   "ruby40 (wasm - minimal)"  => { path: File.join(WASM_DIR, "ruby40_minimal.wasm"),  serialized: false },
+  "ruby40 (wasm - include_gems)"  => { path: File.join(WASM_DIR, "ruby40_include_gems.wasm"),  serialized: false },
   "ruby33 (cwasm)" => { path: File.join(WASM_DIR, "ruby33.cwasm"), serialized: true },
   "ruby34 (cwasm)" => { path: File.join(WASM_DIR, "ruby34.cwasm"), serialized: true },
   "ruby34 (cwasm - minimal)" => { path: File.join(WASM_DIR, "ruby34_minimal.cwasm"), serialized: true },
+  "ruby34 (cwasm - include_gems)" => { path: File.join(WASM_DIR, "ruby34_include_gems.cwasm"), serialized: true },
   "ruby40 (cwasm)" => { path: File.join(WASM_DIR, "ruby40.cwasm"), serialized: true },
   "ruby40 (cwasm - minimal)" => { path: File.join(WASM_DIR, "ruby40_minimal.cwasm"), serialized: true },
+  "ruby40 (cwasm - include_gems)" => { path: File.join(WASM_DIR, "ruby40_include_gems.cwasm"), serialized: true },
 }
 
 CODE = "puts 1 + 1"
