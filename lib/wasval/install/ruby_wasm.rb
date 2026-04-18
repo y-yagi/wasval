@@ -64,7 +64,8 @@ module Wasval
 
       def serialize
         engine = Wasmtime::Engine.new(epoch_interruption: true)
-        mod = Wasmtime::Module.from_file(engine, dest)
+        source = (pack_dirs || include_usr) ? pack_output : dest
+        mod = Wasmtime::Module.from_file(engine, source)
         FileUtils.mkdir_p(File.dirname(serialized_dest))
         File.binwrite(serialized_dest, mod.serialize)
         serialized_dest
