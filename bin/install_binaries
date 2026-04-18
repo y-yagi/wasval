@@ -1,0 +1,34 @@
+#!/usr/bin/env ruby
+# frozen_string_literal: true
+
+require "bundler/setup"
+require "wasval/install/ruby_wasm"
+
+WASM_DIR = File.expand_path("~/.wasval")
+
+INSTALLATIONS = [
+  { ruby_version: "3.3", profile: :full,    dest: "ruby33.wasm",         serialized_dest: "ruby33.cwasm" },
+  { ruby_version: "3.4", profile: :full,    dest: "ruby34.wasm",         serialized_dest: "ruby34.cwasm" },
+  { ruby_version: "3.4", profile: :minimal, dest: "ruby34_minimal.wasm", serialized_dest: "ruby34_minimal.cwasm" },
+  { ruby_version: "3.4", profile: :full,    dest: "ruby34.wasm",         serialized_dest: "ruby34_include_gems.cwasm", pack_output: "ruby34_include_gems.wasm", include_usr: true },
+  { ruby_version: "4.0", profile: :full,    dest: "ruby40.wasm",         serialized_dest: "ruby40.cwasm" },
+  { ruby_version: "4.0", profile: :minimal, dest: "ruby40_minimal.wasm", serialized_dest: "ruby40_minimal.cwasm" },
+  { ruby_version: "4.0", profile: :full,    dest: "ruby40.wasm",         serialized_dest: "ruby40_include_gems.cwasm", pack_output: "ruby40_include_gems.wasm", include_usr: true },
+]
+
+INSTALLATIONS.each do |config|
+  label = "ruby#{config[:ruby_version].delete(".")} (#{config[:profile]}#{config[:include_usr] ? " + include_gems" : ""})"
+  print "Installing #{label}... "
+
+  installer = Wasval::Install::RubyWasm.new(
+    ruby_version: config[:ruby_version],
+    profile: config[:profile],
+    dest: File.join(WASM_DIR, config[:dest]),
+    serialized_dest: File.join(WASM_DIR, config[:serialized_dest]),
+    pack_output: config[:pack_output] && File.join(WASM_DIR, config[:pack_output]),
+    include_usr: config.fetch(:include_usr, false)
+  )
+
+  installer.install
+  puts "done"
+end
