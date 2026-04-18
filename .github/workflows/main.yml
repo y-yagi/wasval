@@ -38,3 +38,65 @@ jobs:
         run: bundle exec ruby -e "require 'wasval'; Wasval::Install::RubyWasm.new.install"
       - name: Run the default task
         run: bundle exec rake
+
+  install:
+    runs-on: ubuntu-latest
+    name: Install (Ruby 3.4 on Linux)
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          persist-credentials: false
+      - name: Set up Ruby
+        uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: '3.4'
+          bundler-cache: true
+      - name: Install wasm and cwasm
+        run: |
+          bundle exec ruby -e "
+            require 'wasval/install/ruby_wasm'
+            Wasval::Install::RubyWasm.new(
+              ruby_version: '3.4',
+              dest: '/tmp/ruby.wasm',
+              serialized_dest: '/tmp/ruby.cwasm'
+            ).install
+          "
+      - name: Verify wasm
+        env:
+          WASVAL_RUBY_WASM_PATH: /tmp/ruby.wasm
+        run: |
+          bundle exec ruby -e "
+            require 'wasval'
+            result = Wasval.execute(\"puts 'hello world'\")
+            raise \"wasm execute failed: \#{result.inspect}\" unless result.status == :success
+          "
+      - name: Verify cwasm
+        env:
+          WASVAL_RUBY_CWASM_PATH: /tmp/ruby.cwasm
+        run: |
+          bundle exec ruby -e "
+            require 'wasval'
+            result = Wasval.execute(\"puts 'hello world'\")
+            raise \"cwasm execute failed: \#{result.inspect}\" unless result.status == :success
+          "
+      - name: Install include_gems
+        run: |
+          bundle exec ruby -e "
+            require 'wasval/install/ruby_wasm'
+            Wasval::Install::RubyWasm.new(
+              ruby_version: '3.4',
+              dest: '/tmp/ruby.wasm',
+              serialized_dest: '/tmp/ruby_include_gems.cwasm',
+              pack_output: '/tmp/ruby_include_gems.wasm',
+              include_usr: true
+            ).install
+          "
+      - name: Verify include_gems
+        env:
+          WASVAL_RUBY_CWASM_PATH: /tmp/ruby_include_gems.cwasm
+        run: |
+          bundle exec ruby -e "
+            require 'wasval'
+            result = Wasval.execute(\"require 'json'; JSON.parse('1')\")
+            raise \"include_gems execute failed: \#{result.inspect}\" unless result.status == :success
+          "
