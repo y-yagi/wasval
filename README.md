@@ -50,6 +50,36 @@ You can customize the destination via the `WASVAL_RUBY_WASM_PATH` environment va
 Wasval::Install::RubyWasm.new(dest: "/path/to/ruby.wasm").download
 ```
 
+### Bundling gems into the binary (`include_gems`)
+
+By default, the installed `ruby.wasm` binary does not include the standard library or gems, so `require` calls inside the sandbox will fail. To bundle the standard library (and any gems installed in the `usr` directory of the tarball) into the binary, use the `include_gems: true` option:
+
+```ruby
+Wasval::Install::RubyWasm.new(
+  include_gems: true,
+  pack_output: "/path/to/ruby-packed.wasm",
+  serialized_dest: "/path/to/ruby.cwasm"
+).install
+```
+
+This extracts the `usr` directory from the downloaded tarball, packs it into the binary via `rbwasm pack`, and serializes the result. The packed binary is written to `pack_output` (defaults to `~/.wasval/ruby-packed.wasm`), and the serialized module is written to `serialized_dest`.
+
+If you have a pre-existing `usr` directory (e.g. with additional gems installed), pass its path via `include_gems:`:
+
+```ruby
+Wasval::Install::RubyWasm.new(
+  include_gems: true,
+  include_gems: "/path/to/usr"
+).install
+```
+
+After installing with `include_gems: true`, point `WASVAL_RUBY_CWASM_PATH` to the serialized binary and `require` will work inside the sandbox:
+
+```ruby
+result = Wasval.execute("require 'json'; JSON.parse('1')")
+result.status  # => :success
+```
+
 ## Usage
 
 Set the `WASVAL_RUBY_WASM_PATH` environment variable to point to the `ruby.wasm` binary, then execute Ruby code:

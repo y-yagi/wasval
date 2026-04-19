@@ -20,9 +20,9 @@ module Wasval
       DEFAULT_PACKED_BINARY_NAME = "ruby-packed.wasm"
       DEFAULT_USR_DIR_NAME = "usr"
 
-      attr_reader :dest, :serialized_dest, :ruby_version, :profile, :pack_dirs, :pack_output, :include_gems, :include_usr
+      attr_reader :dest, :serialized_dest, :ruby_version, :profile, :pack_dirs, :pack_output, :include_gems
 
-      def initialize(dest: nil, serialized_dest: nil, ruby_version: nil, profile: :full, pack_dirs: nil, pack_output: nil, include_gems: nil, include_usr: false)
+      def initialize(dest: nil, serialized_dest: nil, ruby_version: nil, profile: :full, pack_dirs: nil, pack_output: nil, include_gems: nil)
         @ruby_version = ruby_version || ENV["WASVAL_RUBY_VERSION"] || default_ruby_version
         @profile = profile.to_s
         @dest = dest || ENV["WASVAL_RUBY_WASM_PATH"] || File.join(DEFAULT_INSTALL_DIR, DEFAULT_BINARY_NAME)
@@ -30,7 +30,6 @@ module Wasval
         @pack_dirs = pack_dirs
         @pack_output = pack_output || File.join(File.dirname(@dest), DEFAULT_PACKED_BINARY_NAME)
         @include_gems = include_gems
-        @include_usr = include_usr
       end
 
       def download
@@ -49,11 +48,15 @@ module Wasval
           tarball_path = File.join(tmpdir, tarball_name)
           download_file(download_url, tarball_path)
           extract_binary(tarball_path)
-          if pack_dirs || include_usr
+          if pack_dirs || include_gems
             dirs = pack_dirs ? pack_dirs.dup : []
-            if include_usr
-              actual_usr_dir = include_gems || File.join(tmpdir, DEFAULT_USR_DIR_NAME)
-              extract_usr_dir(tarball_path, actual_usr_dir)
+            if include_gems
+              if include_gems == true
+                actual_usr_dir = File.join(tmpdir, DEFAULT_USR_DIR_NAME)
+                extract_usr_dir(tarball_path, actual_usr_dir)
+              else
+                actual_usr_dir = include_gems
+              end
               dirs << actual_usr_dir
             end
             pack(*dirs, output: pack_output) if dirs.any?
@@ -64,7 +67,7 @@ module Wasval
 
       def serialize
         engine = Wasmtime::Engine.new(epoch_interruption: true)
-        source = (pack_dirs || include_usr) ? pack_output : dest
+        source = (pack_dirs || include_gems) ? pack_output : dest
         mod = Wasmtime::Module.from_file(engine, source)
         FileUtils.mkdir_p(File.dirname(serialized_dest))
         File.binwrite(serialized_dest, mod.serialize)
