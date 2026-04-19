@@ -1,7 +1,7 @@
 PATH
   remote: .
   specs:
-    wasval (0.1.0)
+    wasval (0.1.1)
       ruby_wasm
       wasmtime
 
@@ -100,7 +100,7 @@ CHECKSUMS
   tsort (0.2.0) sha256=9650a793f6859a43b6641671278f79cfead60ac714148aabe4e3f0060480089f
   wasmtime (43.0.1-arm64-darwin) sha256=c18443bf593f0238629d7883dd9eb38bcdd1f02c6f8f7820b454e60c7058a31b
   wasmtime (43.0.1-x86_64-linux) sha256=248072c225b891bcc6eb399d8119059a0edcee842965b0b51727705e6cdd29d5
-  wasval (0.1.0)
+  wasval (0.1.1)
   watchcat (0.5.2-arm64-darwin) sha256=18e23cc82d8ba6a08db19d93e4b2c9dab80c105ecfa856ee0d2abb826fba840c
   watchcat (0.5.2-x86_64-linux) sha256=9cc71b6ffeba73b8865fbf0b1b3d7362d805272d41028f37074e92657b94e66f
 

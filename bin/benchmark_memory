@@ -70,8 +70,10 @@ WASM_FILES.each do |version, config|
       linker.instantiate(store, mod).invoke("_start")
     rescue Wasmtime::WasiExit
     rescue Wasmtime::Trap, Wasmtime::Error => e
+raise e
       error_message = store.linear_memory_limit_hit? ? "memory limit exceeded" : "#{e.class}: #{e.message}"
     rescue => e
+raise e
       error_message = "#{e.class}: #{e.message}"
     end
 
