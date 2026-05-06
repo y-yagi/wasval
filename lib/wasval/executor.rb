@@ -19,6 +19,9 @@ module Wasval
       else
         raise ArgumentError.new "Please specify 'WASVAL_RUBY_WASM_PATH' or 'WASVAL_RUBY_CWASM_PATH' env"
       end
+
+      @engine.start_epoch_interval(1000)
+      @baseline_memory_mb = measure_startup_memory_mb
     end
 
     def execute(code:, timeout:, memory_limit:)
@@ -42,14 +45,12 @@ module Wasval
 
       store = Wasmtime::Store.new(@engine,
         wasi_p1_config: wasi_config,
-        limits: { memory_size: memory_limit * 1024 * 1024 }
+        limits: { memory_size: (@baseline_memory_mb + memory_limit) * 1024 * 1024 }
       )
       store.set_epoch_deadline(timeout)
 
       linker = Wasmtime::Linker.new(@engine)
       Wasmtime::WASI::P1.add_to_linker_sync(linker)
-
-      @engine.start_epoch_interval(1000)
 
       begin
         linker.instantiate(store, @mod).invoke("_start")
@@ -76,6 +77,32 @@ module Wasval
     end
 
     private
+
+    def measure_startup_memory_mb
+      stdout_buf = +""
+      stderr_buf = +""
+      wasi_config = Wasmtime::WasiConfig.new
+        .set_argv(["ruby", "-"])
+        .set_stdin_string("")
+        .set_stdout_buffer(stdout_buf, 1024)
+        .set_stderr_buffer(stderr_buf, 1024)
+
+      probe_store = Wasmtime::Store.new(@engine,
+        wasi_p1_config: wasi_config,
+        limits: { memory_size: 512 * 1024 * 1024 }
+      )
+      probe_store.set_epoch_deadline(30)
+
+      linker = Wasmtime::Linker.new(@engine)
+      Wasmtime::WASI::P1.add_to_linker_sync(linker)
+
+      begin
+        linker.instantiate(probe_store, @mod).invoke("_start")
+      rescue Wasmtime::WasiExit
+      end
+
+      (probe_store.max_linear_memory_consumed.to_f / (1024 * 1024)).ceil
+    end
 
     def wrapped_code(code)
       <<~RUBY
