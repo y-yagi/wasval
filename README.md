@@ -34,7 +34,7 @@ Wasval::Install::RubyWasm.new.download
 
 The binary is downloaded from the [ruby.wasm releases](https://github.com/ruby/ruby.wasm/releases).
 
-By default, Ruby 3.4 is used. You can change the Ruby version via the `WASVAL_RUBY_VERSION` environment variable or the `ruby_version:` option:
+By default, Ruby 4.0 is used. You can change the Ruby version via the `WASVAL_RUBY_VERSION` environment variable or the `ruby_version:` option:
 
 ```ruby
 Wasval::Install::RubyWasm.new(ruby_version: "3.3").install
