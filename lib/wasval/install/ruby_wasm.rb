@@ -101,7 +101,7 @@ module Wasval
       private
 
       def default_ruby_version
-        "3.4"
+        "4.0"
       end
 
       def download_file(url, dest_path, redirect_limit: 10)

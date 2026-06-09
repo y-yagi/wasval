@@ -23,7 +23,6 @@ jobs:
 
     env:
       WASVAL_RUBY_CWASM_PATH: /tmp/ruby.cwasm
-      WASVAL_RUBY_VERSION: 3.4
 
     steps:
       - uses: actions/checkout@v6
@@ -41,7 +40,7 @@ jobs:
 
   install:
     runs-on: ubuntu-latest
-    name: Install (Ruby 3.4 on Linux)
+    name: Install (Ruby 4.0 on Linux)
     steps:
       - uses: actions/checkout@v6
         with:
@@ -49,14 +48,13 @@ jobs:
       - name: Set up Ruby
         uses: ruby/setup-ruby@v1
         with:
-          ruby-version: '3.4'
+          ruby-version: '4.0'
           bundler-cache: true
       - name: Install wasm and cwasm
         run: |
           bundle exec ruby -e "
             require 'wasval/install/ruby_wasm'
             Wasval::Install::RubyWasm.new(
-              ruby_version: '3.4',
               dest: '/tmp/ruby.wasm',
               serialized_dest: '/tmp/ruby.cwasm'
             ).install
@@ -84,7 +82,6 @@ jobs:
           bundle exec ruby -e "
             require 'wasval/install/ruby_wasm'
             Wasval::Install::RubyWasm.new(
-              ruby_version: '3.4',
               dest: '/tmp/ruby.wasm',
               serialized_dest: '/tmp/ruby_include_gems.cwasm',
               pack_output: '/tmp/ruby_include_gems.wasm',
@@ -105,7 +102,6 @@ jobs:
           bundle exec ruby -e "
             require 'wasval/install/ruby_wasm'
             Wasval::Install::RubyWasm.new(
-              ruby_version: '3.4',
               dest: '/tmp/ruby.wasm',
               serialized_dest: '/tmp/ruby_pack_dirs.cwasm',
               pack_output: '/tmp/ruby_pack_dirs.wasm',
